@@ -1,0 +1,24 @@
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+df = pd.read_csv("data/day16_encoding.csv")
+
+le = LabelEncoder()
+df["city_label"] = le.fit_transform(df["city"])
+
+df_onehot = pd.get_dummies(df, columns=["city"])
+
+print("Original:")
+print(df.head())
+
+print("\nLabel Encoded:")
+print(df[["city", "city_label"]].head())
+
+print("\nOne-Hot Encoded:")
+print(df_onehot.head())
+
+print("\nLabel Encoding Value Counts:")
+print(df["city_label"].value_counts())
+
+print("\nOne-Hot Column Means:")
+print(df_onehot.filter(like="city_").mean())
