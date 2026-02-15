@@ -1,0 +1,42 @@
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv(r"C:\Users\Administrator\Downloads\day15_real_dataset_large.csv")
+
+print("Before cleaning:")
+print(f"Age outliers (< 18 or > 100): {((pd.to_numeric(df['age'], errors='coerce') < 18) | (pd.to_numeric(df['age'], errors='coerce') > 100)).sum()}")
+
+Q1 = df['income'].quantile(0.25)
+Q3 = df['income'].quantile(0.75)
+IQR = Q3 - Q1
+print(f"Income outliers: {((df['income'] < Q1 - 1.5*IQR) | (df['income'] > Q3 + 1.5*IQR)).sum()}")
+print(f"Income range: [{Q1 - 1.5*IQR:.0f}, {Q3 + 1.5*IQR:.0f}]")
+
+def clean_data_project(df):
+    df_clean = df.copy()
+
+    df_clean['age'] = pd.to_numeric(df_clean['age'], errors='coerce')
+    df_clean.loc[(df_clean['age'] < 18) | (df_clean['age'] > 100), 'age'] = np.nan
+    df_clean['age'] = df_clean['age'].fillna(df_clean['age'].median()).astype(int)
+
+    Q1 = df_clean['income'].quantile(0.25)
+    Q3 = df_clean['income'].quantile(0.75)
+    IQR = Q3 - Q1
+    df_clean.loc[(df_clean['income'] < Q1 - 1.5 * IQR) | (df_clean['income'] > Q3 + 1.5 * IQR), 'income'] = np.nan
+    df_clean['income'] = df_clean['income'].fillna(df_clean['income'].median())
+
+    df_clean['city'] = df_clean['city'].str.strip()
+    df_clean['city'] = df_clean['city'].fillna('Unknown')
+
+    df_clean['signup_time'] = pd.to_datetime(df_clean['signup_time'], errors='coerce')
+    df_clean = df_clean.dropna(subset=['signup_time'])
+
+    return df_clean
+
+df_cleaned = clean_data_project(df)
+df_cleaned.to_csv(r'C:\Users\Administrator\Downloads\day15_cleaned.csv', index=False)
+
+print(f"\nOriginal: {len(df)} rows")
+print(f"Cleaned: {len(df_cleaned)} rows")
+print(f"Missing before: {df.isnull().sum().sum()}")
+print(f"Missing after: {df_cleaned.isnull().sum().sum()}")
